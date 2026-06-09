@@ -1,0 +1,18 @@
+{
+  "name": "autoverse",
+  "version": "1.0.0",
+  "description": "AutoVerse — Distributed Car Magazine",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "node-cache": "^5.1.2",
+    "uuid": "^9.0.0",
+    "compression": "^1.7.4",
+    "morgan": "^1.10.0"
+  }
+}

@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AutoVerse — Revista de Carros</title>
+  <style>
+    /* ── DESIGN TOKENS ───────────────────────────── */
+    :root {
+      --bg: #0a0a0b;
+      --surface: #111113;
+      --surface2: #1a1a1e;
+      --border: #2a2a30;
+      --red: #e8192c;
+      --red-dim: #c0152a;
+      --gold: #f5a623;
+      --text: #f0f0f5;
+      --muted: #8a8a9a;
+      --light: #d0d0da;
+      --font: 'Segoe UI', system-ui, sans-serif;
+      --mono: 'Courier New', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; }
+
+    /* ── NAV ────────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: rgba(10,10,11,0.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo { font-size: 1.5rem; font-weight: 900; letter-spacing: -0.03em; color: var(--text); text-decoration: none; }
+    .nav-logo span { color: var(--red); }
+    .nav-links { display: flex; gap: 1.5rem; list-style: none; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--text); }
+    .search-wrap { position: relative; }
+    .search-input {
+      background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+      padding: 0.4rem 1rem 0.4rem 2.2rem; border-radius: 20px; font-size: 0.85rem;
+      width: 200px; outline: none; transition: border-color 0.2s, width 0.3s;
+    }
+    .search-input:focus { border-color: var(--red); width: 260px; }
+    .search-icon { position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 0.8rem; }
+
+    /* ── HERO ───────────────────────────────────── */
+    .hero {
+      margin-top: 60px; height: 85vh; min-height: 500px;
+      position: relative; display: flex; align-items: flex-end; overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0; background-size: cover; background-position: center;
+      transition: opacity 0.6s; filter: brightness(0.5);
+    }
+    .hero-gradient { position: absolute; inset: 0; background: linear-gradient(to top, rgba(10,10,11,1) 0%, rgba(10,10,11,0.3) 60%, transparent 100%); }
+    .hero-content { position: relative; z-index: 1; padding: 3rem 4rem 4rem; max-width: 700px; }
+    .hero-badge { display: inline-block; background: var(--red); color: white; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; padding: 0.3rem 0.8rem; border-radius: 2px; margin-bottom: 1rem; }
+    .hero-title { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900; line-height: 1.1; margin-bottom: 0.75rem; }
+    .hero-subtitle { color: var(--light); font-size: 1.05rem; margin-bottom: 1.5rem; line-height: 1.5; }
+    .hero-meta { display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; }
+    .hero-author { color: var(--muted); font-size: 0.85rem; }
+    .hero-author strong { color: var(--gold); }
+    .btn-read {
+      background: var(--red); color: white; border: none; cursor: pointer;
+      padding: 0.7rem 1.8rem; border-radius: 4px; font-size: 0.9rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.05em; transition: background 0.2s, transform 0.1s;
+    }
+    .btn-read:hover { background: var(--red-dim); transform: translateY(-1px); }
+    .hero-dots { position: absolute; bottom: 1.5rem; right: 4rem; display: flex; gap: 0.5rem; z-index: 2; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.3); cursor: pointer; transition: background 0.2s; }
+    .dot.active { background: var(--red); width: 24px; border-radius: 4px; }
+
+    /* ── SECTION ────────────────────────────────── */
+    .section { max-width: 1300px; margin: 0 auto; padding: 3rem 2rem; }
+    .section-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.5rem; border-bottom: 2px solid var(--red); padding-bottom: 0.6rem; }
+    .section-title { font-size: 1.1rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; }
+    .see-all { color: var(--red); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; cursor: pointer; text-decoration: none; }
+    .see-all:hover { color: var(--gold); }
+
+    /* ── GRID ───────────────────────────────────── */
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 1.5rem; }
+    .card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.5); border-color: var(--red); }
+    .card-img { width: 100%; height: 210px; object-fit: cover; display: block; transition: transform 0.3s; }
+    .card:hover .card-img { transform: scale(1.03); }
+    .card-img-wrap { overflow: hidden; height: 210px; }
+    .card-body { padding: 1.2rem; }
+    .card-category { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--red); margin-bottom: 0.5rem; }
+    .card-title { font-size: 1.05rem; font-weight: 700; line-height: 1.35; margin-bottom: 0.5rem; }
+    .card-sub { font-size: 0.85rem; color: var(--muted); line-height: 1.4; margin-bottom: 1rem; }
+    .card-footer { display: flex; justify-content: space-between; align-items: center; }
+    .card-author { font-size: 0.75rem; color: var(--muted); }
+    .card-author strong { color: var(--gold); }
+    .card-read { font-size: 0.75rem; color: var(--muted); }
+    .card-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.75rem; }
+    .tag { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); font-size: 0.65rem; padding: 0.2rem 0.5rem; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+    /* ── ARTICLE DETAIL ─────────────────────────── */
+    .article-detail {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background: var(--bg); overflow-y: auto;
+    }
+    .article-detail.open { display: block; }
+    .article-detail-inner { max-width: 800px; margin: 0 auto; padding: 2rem; padding-top: 80px; }
+    .back-btn { background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.5rem 1.2rem; border-radius: 4px; cursor: pointer; font-size: 0.85rem; margin-bottom: 2rem; transition: all 0.2s; }
+    .back-btn:hover { border-color: var(--red); color: var(--text); }
+    .article-hero-img { width: 100%; height: 400px; object-fit: cover; border-radius: 8px; margin-bottom: 1.5rem; }
+    .article-meta { display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; }
+    .article-title { font-size: 2.2rem; font-weight: 900; line-height: 1.15; margin-bottom: 0.75rem; }
+    .article-subtitle { font-size: 1.1rem; color: var(--light); margin-bottom: 2rem; line-height: 1.5; }
+    .article-content { font-size: 1rem; line-height: 1.8; color: var(--light); margin-bottom: 2.5rem; }
+    .specs-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; }
+    .spec-item { text-align: center; }
+    .spec-value { font-size: 1.3rem; font-weight: 800; color: var(--red); }
+    .spec-label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 0.25rem; }
+
+    /* ── CATEGORIES BAR ─────────────────────────── */
+    .cats { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 2rem; }
+    .cat-btn {
+      background: var(--surface); border: 1px solid var(--border); color: var(--muted);
+      padding: 0.45rem 1.1rem; border-radius: 20px; font-size: 0.8rem; cursor: pointer;
+      transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .cat-btn.active, .cat-btn:hover { background: var(--red); border-color: var(--red); color: white; }
+
+    /* ── STATS BAR ──────────────────────────────── */
+    .stats-bar { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 2rem; display: flex; gap: 2rem; flex-wrap: wrap; justify-content: space-around; margin-bottom: 2rem; }
+    .stat { text-align: center; }
+    .stat-val { font-size: 1.4rem; font-weight: 800; color: var(--gold); }
+    .stat-lbl { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+
+    /* ── DISTRIBUTED INFO BANNER ────────────────── */
+    .dist-banner { background: var(--surface2); border: 1px solid var(--border); border-top: 2px solid var(--gold); border-radius: 8px; padding: 1rem 1.5rem; margin-bottom: 2rem; display: flex; gap: 2rem; flex-wrap: wrap; align-items: center; font-size: 0.78rem; }
+    .dist-item { display: flex; flex-direction: column; gap: 0.1rem; }
+    .dist-label { color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.65rem; }
+    .dist-value { color: var(--gold); font-weight: 700; font-family: var(--mono); }
+    .dist-badge { padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+    .badge-hit { background: rgba(80,200,120,0.15); color: #50c878; border: 1px solid rgba(80,200,120,0.3); }
+    .badge-miss { background: rgba(232,25,44,0.15); color: var(--red); border: 1px solid rgba(232,25,44,0.3); }
+    .badge-closed { background: rgba(80,200,120,0.15); color: #50c878; border: 1px solid rgba(80,200,120,0.3); }
+
+    /* ── LOADING ─────────────────────────────────── */
+    .skeleton { background: linear-gradient(90deg, var(--surface) 25%, var(--surface2) 50%, var(--surface) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px; }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    .skeleton-card { height: 340px; border-radius: 8px; }
+
+    /* ── SEARCH RESULTS ─────────────────────────── */
+    .search-results { position: fixed; top: 60px; right: 2rem; z-index: 150; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; width: 340px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); padding: 0.75rem; display: none; }
+    .search-results.open { display: block; }
+    .search-result-item { padding: 0.6rem 0.75rem; border-radius: 4px; cursor: pointer; transition: background 0.15s; }
+    .search-result-item:hover { background: var(--surface2); }
+    .sri-title { font-size: 0.88rem; font-weight: 600; margin-bottom: 0.15rem; }
+    .sri-cat { font-size: 0.7rem; color: var(--red); text-transform: uppercase; letter-spacing: 0.06em; }
+
+    /* ── FOOTER ─────────────────────────────────── */
+    footer { background: var(--surface); border-top: 1px solid var(--border); padding: 2rem; text-align: center; color: var(--muted); font-size: 0.8rem; margin-top: 4rem; }
+    footer strong { color: var(--gold); }
+
+    @media (max-width: 768px) {
+      .hero-content { padding: 2rem 1.5rem 3rem; }
+      .specs-grid { grid-template-columns: repeat(3, 1fr); }
+      .nav-links { display: none; }
+      .search-input { width: 140px; }
+      .grid-3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAV ──────────────────────────────────────────────────────────────────── -->
+<nav>
+  <a class="nav-logo" href="#"><span>Auto</span>Verse</a>
+  <ul class="nav-links">
+    <li><a href="#">Supercarros</a></li>
+    <li><a href="#">Esportivos</a></li>
+    <li><a href="#">Gran Turismo</a></li>
+    <li><a href="#">Tecnologia</a></li>
+  </ul>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" id="searchInput" type="text" placeholder="Buscar carros..." autocomplete="off"/>
+    <div class="search-results" id="searchResults"></div>
+  </div>
+</nav>
+
+<!-- ── HERO ─────────────────────────────────────────────────────────────────── -->
+<div class="hero" id="hero">
+  <div class="hero-bg" id="heroBg"></div>
+  <div class="hero-gradient"></div>
+  <div class="hero-content" id="heroContent">
+    <span class="hero-badge">Em Destaque</span>
+    <h1 class="hero-title" id="heroTitle">Carregando...</h1>
+    <p class="hero-subtitle" id="heroSubtitle"></p>
+    <div class="hero-meta">
+      <span class="hero-author" id="heroAuthor"></span>
+      <button class="btn-read" id="heroBtn">Ler Artigo →</button>
+    </div>
+  </div>
+  <div class="hero-dots" id="heroDots"></div>
+</div>
+
+<!-- ── ARTICLE DETAIL ───────────────────────────────────────────────────────── -->
+<div class="article-detail" id="articleDetail">
+  <div class="article-detail-inner">
+    <button class="back-btn" id="backBtn">← Voltar</button>
+    <img src="" alt="" class="article-hero-img" id="detailImg"/>
+    <div class="article-meta">
+      <span class="hero-badge" id="detailCat"></span>
+      <span class="hero-author" id="detailAuthor"></span>
+    </div>
+    <h1 class="article-title" id="detailTitle"></h1>
+    <p class="article-subtitle" id="detailSubtitle"></p>
+    <div class="specs-grid" id="detailSpecs"></div>
+    <p class="article-content" id="detailContent"></p>
+    <div class="card-tags" id="detailTags"></div>
+  </div>
+</div>
+
+<!-- ── MAIN ─────────────────────────────────────────────────────────────────── -->
+<main>
+  <!-- DISTRIBUTED INFO BANNER -->
+  <div class="section">
+    <div class="dist-banner" id="distBanner">
+      <div class="dist-item">
+        <span class="dist-label">Instance ID</span>
+        <span class="dist-value" id="dInstanceId">—</span>
+      </div>
+      <div class="dist-item">
+        <span class="dist-label">Host</span>
+        <span class="dist-value" id="dHost">—</span>
+      </div>
+      <div class="dist-item">
+        <span class="dist-label">Cache Status</span>
+        <span class="dist-value" id="dCache">—</span>
+      </div>
+      <div class="dist-item">
+        <span class="dist-label">Circuit Breaker</span>
+        <span class="dist-value badge-closed" id="dCircuit">—</span>
+      </div>
+      <div class="dist-item">
+        <span class="dist-label">Requests</span>
+        <span class="dist-value" id="dRequests">—</span>
+      </div>
+      <div class="dist-item">
+        <span class="dist-label">Uptime</span>
+        <span class="dist-value" id="dUptime">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATEGORIES -->
+  <div class="section">
+    <div class="cats" id="catsBar">
+      <button class="cat-btn active" data-cat="">Todos</button>
+    </div>
+
+    <!-- SECTION HEADER -->
+    <div class="section-header">
+      <span class="section-title">Últimas Matérias</span>
+      <a class="see-all" href="#">Ver todos →</a>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-bar" id="statsBar"></div>
+
+    <!-- GRID -->
+    <div class="grid-3" id="articlesGrid">
+      <div class="skeleton skeleton-card"></div>
+      <div class="skeleton skeleton-card"></div>
+      <div class="skeleton skeleton-card"></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <p><strong>AutoVerse</strong> — Revista distribuída de carros de alta performance</p>
+  <p style="margin-top:0.5rem">Arquitetura: API REST · Cache distribuído · Circuit Breaker · Health Check · Service Registry</p>
+  <p style="margin-top:0.5rem">Nuvem: <strong>Render.com</strong> — Deploy automático via Git</p>
+</footer>
+
+<script>
+// ── CONFIG ───────────────────────────────────────────────────────────────────
+// In production this points to the deployed API
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:3001'
+  : 'https://autoverse-api.onrender.com';
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let featured = [];
+let heroIdx = 0;
+let heroTimer;
+let lastCacheStatus = 'MISS';
+let activeCategory = '';
+
+// ── UTILITIES ────────────────────────────────────────────────────────────────
+async function apiFetch(path) {
+  const res = await fetch(API_BASE + path);
+  const cacheHeader = res.headers.get('X-Cache');
+  if (cacheHeader) lastCacheStatus = cacheHeader;
+  return res.json();
+}
+
+function timeAgo(dateStr) {
+  const d = new Date(dateStr);
+  const diff = (Date.now() - d) / 1000;
+  if (diff < 3600) return `${Math.floor(diff / 60)}min atrás`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h atrás`;
+  return `${Math.floor(diff / 86400)}d atrás`;
+}
+
+function formatUptime(s) {
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+  return `${h}h ${m}m`;
+}
+
+// ── HERO ─────────────────────────────────────────────────────────────────────
+function renderHero(article) {
+  document.getElementById('heroBg').style.backgroundImage = `url(${article.image})`;
+  document.getElementById('heroTitle').textContent = article.title;
+  document.getElementById('heroSubtitle').textContent = article.subtitle;
+  document.getElementById('heroAuthor').innerHTML = `Por <strong>${article.author}</strong> · ${timeAgo(article.date)}`;
+  document.getElementById('heroBtn').onclick = () => openArticle(article);
+}
+
+function buildHeroDots() {
+  const dots = document.getElementById('heroDots');
+  dots.innerHTML = featured.map((_, i) =>
+    `<div class="dot ${i === 0 ? 'active' : ''}" data-i="${i}"></div>`
+  ).join('');
+  dots.querySelectorAll('.dot').forEach(d => d.onclick = () => jumpHero(+d.dataset.i));
+}
+
+function jumpHero(i) {
+  heroIdx = i;
+  renderHero(featured[i]);
+  document.querySelectorAll('.dot').forEach((d, j) => d.classList.toggle('active', j === i));
+  resetHeroTimer();
+}
+
+function resetHeroTimer() {
+  clearInterval(heroTimer);
+  heroTimer = setInterval(() => jumpHero((heroIdx + 1) % featured.length), 6000);
+}
+
+// ── ARTICLE CARD ─────────────────────────────────────────────────────────────
+function renderCard(a) {
+  return `
+    <div class="card" onclick="openArticle(${JSON.stringify(a).replace(/"/g, '&quot;')})">
+      <div class="card-img-wrap">
+        <img class="card-img" src="${a.image}" alt="${a.title}" loading="lazy"/>
+      </div>
+      <div class="card-body">
+        <div class="card-category">${a.category}</div>
+        <h3 class="card-title">${a.title}</h3>
+        <p class="card-sub">${a.subtitle}</p>
+        <div class="card-tags">${a.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+        <div class="card-footer">
+          <span class="card-author">Por <strong>${a.author}</strong></span>
+          <span class="card-read">📖 ${a.readTime} min · 👁 ${a.views.toLocaleString()}</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderGrid(articles) {
+  document.getElementById('articlesGrid').innerHTML =
+    articles.length ? articles.map(renderCard).join('') : '<p style="color:var(--muted)">Nenhum artigo encontrado.</p>';
+}
+
+// ── ARTICLE DETAIL ───────────────────────────────────────────────────────────
+function openArticle(a) {
+  document.getElementById('detailImg').src = a.image;
+  document.getElementById('detailImg').alt = a.title;
+  document.getElementById('detailCat').textContent = a.category;
+  document.getElementById('detailAuthor').innerHTML = `Por <strong>${a.author}</strong> · ${timeAgo(a.date)} · ${a.readTime} min`;
+  document.getElementById('detailTitle').textContent = a.title;
+  document.getElementById('detailSubtitle').textContent = a.subtitle;
+  document.getElementById('detailContent').textContent = a.content;
+  document.getElementById('detailTags').innerHTML = a.tags.map(t => `<span class="tag">${t}</span>`).join('');
+
+  if (a.specs) {
+    const specs = Object.entries(a.specs);
+    const labels = { power: 'Potência', torque: 'Torque', acceleration: '0-100 km/h', topSpeed: 'Vel. Máx.', weight: 'Peso' };
+    document.getElementById('detailSpecs').innerHTML = specs.map(([k, v]) =>
+      `<div class="spec-item"><div class="spec-value">${v}</div><div class="spec-label">${labels[k] || k}</div></div>`
+    ).join('');
+  }
+
+  const detail = document.getElementById('articleDetail');
+  detail.classList.add('open');
+  detail.scrollTop = 0;
+}
+
+document.getElementById('backBtn').onclick = () => {
+  document.getElementById('articleDetail').classList.remove('open');
+};
+
+// ── METRICS BANNER ───────────────────────────────────────────────────────────
+async function refreshMetrics() {
+  try {
+    const m = await fetch(API_BASE + '/api/metrics').then(r => r.json());
+    document.getElementById('dInstanceId').textContent = m.instanceId?.slice(0, 8) + '...';
+    document.getElementById('dHost').textContent = m.hostname;
+    const hit = m.cacheHits, miss = m.cacheMisses, total = hit + miss;
+    const ratio = total ? ((hit / total) * 100).toFixed(0) : '0';
+    document.getElementById('dCache').innerHTML = `<span class="dist-badge ${lastCacheStatus === 'HIT' ? 'badge-hit' : 'badge-miss'}">${lastCacheStatus}</span> ${ratio}% hit rate`;
+    document.getElementById('dCircuit').innerHTML = `<span class="dist-badge badge-closed">${m.circuitBreakers?.articles || 'CLOSED'}</span>`;
+    document.getElementById('dRequests').textContent = (m.requestCount || 0).toLocaleString();
+    document.getElementById('dUptime').textContent = formatUptime(m.uptime || 0);
+  } catch(e) {
+    document.getElementById('dInstanceId').textContent = 'offline';
+  }
+}
+
+// ── CATEGORIES ───────────────────────────────────────────────────────────────
+async function loadCategories() {
+  try {
+    const cats = await apiFetch('/api/categories');
+    const bar = document.getElementById('catsBar');
+    bar.innerHTML = `<button class="cat-btn active" data-cat="">Todos</button>` +
+      cats.map(c => `<button class="cat-btn" data-cat="${c.name}">${c.icon} ${c.name}</button>`).join('');
+    bar.querySelectorAll('.cat-btn').forEach(btn => btn.onclick = () => {
+      bar.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeCategory = btn.dataset.cat;
+      loadArticles(activeCategory);
+    });
+  } catch(e) {}
+}
+
+// ── STATS ─────────────────────────────────────────────────────────────────────
+function renderStats(articles) {
+  const totalViews = articles.reduce((s, a) => s + a.views, 0);
+  const avgRead = articles.reduce((s, a) => s + a.readTime, 0) / articles.length;
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat"><div class="stat-val">${articles.length}</div><div class="stat-lbl">Artigos</div></div>
+    <div class="stat"><div class="stat-val">${totalViews.toLocaleString()}</div><div class="stat-lbl">Visualizações</div></div>
+    <div class="stat"><div class="stat-val">${avgRead.toFixed(1)} min</div><div class="stat-lbl">Leitura Média</div></div>
+    <div class="stat"><div class="stat-val">3</div><div class="stat-lbl">Categorias</div></div>
+  `;
+}
+
+// ── ARTICLES ─────────────────────────────────────────────────────────────────
+async function loadArticles(category = '') {
+  document.getElementById('articlesGrid').innerHTML =
+    [1,2,3].map(() => '<div class="skeleton skeleton-card"></div>').join('');
+  try {
+    const path = category ? `/api/articles?category=${encodeURIComponent(category)}` : '/api/articles';
+    const data = await apiFetch(path);
+    const articles = data.articles || data;
+    renderGrid(articles);
+    renderStats(articles);
+  } catch(e) {
+    document.getElementById('articlesGrid').innerHTML = '<p style="color:var(--muted)">Erro ao carregar artigos. Servidor offline.</p>';
+  }
+}
+
+// ── SEARCH ───────────────────────────────────────────────────────────────────
+let searchDebounce;
+document.getElementById('searchInput').addEventListener('input', function() {
+  clearTimeout(searchDebounce);
+  const q = this.value.trim();
+  if (!q) { document.getElementById('searchResults').classList.remove('open'); return; }
+  searchDebounce = setTimeout(async () => {
+    try {
+      const data = await apiFetch(`/api/search?q=${encodeURIComponent(q)}`);
+      const box = document.getElementById('searchResults');
+      if (!data.results?.length) { box.innerHTML = '<div style="padding:0.75rem;color:var(--muted);font-size:0.85rem">Nenhum resultado.</div>'; }
+      else {
+        box.innerHTML = data.results.map(a => `
+          <div class="search-result-item" onclick="openArticle(${JSON.stringify(a).replace(/"/g, '&quot;')})">
+            <div class="sri-title">${a.title}</div>
+            <div class="sri-cat">${a.category}</div>
+          </div>`).join('');
+      }
+      box.classList.add('open');
+    } catch(e) {}
+  }, 300);
+});
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-wrap')) document.getElementById('searchResults').classList.remove('open');
+});
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+async function init() {
+  // Load featured for hero
+  try {
+    featured = await apiFetch('/api/featured');
+    if (featured.length) {
+      renderHero(featured[0]);
+      buildHeroDots();
+      resetHeroTimer();
+    }
+  } catch(e) {}
+
+  await Promise.all([loadCategories(), loadArticles()]);
+  await refreshMetrics();
+  setInterval(refreshMetrics, 15000); // poll metrics every 15s
+}
+
+init();
+</script>
+</body>
+</html>
